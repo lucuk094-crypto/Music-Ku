@@ -1,27 +1,33 @@
 'use client'
 
-import { Home, Search, ListMusic, ScrollText, Mic2, Music2 } from 'lucide-react'
+import { Home, Search, ListMusic, ScrollText, Mic2, Music2, Compass } from 'lucide-react'
 import { usePlayer } from '@/context/PlayerContext'
 
 const NAV = [
-  { id: 'home',   label: 'Beranda',   icon: Home       },
-  { id: 'search', label: 'Cari Lagu', icon: Search     },
-  { id: 'queue',  label: 'Antrian',   icon: ListMusic  },
-  { id: 'lyrics', label: 'Lirik',     icon: ScrollText },
-  { id: 'artist', label: 'Artis',     icon: Mic2       },
+  { id: 'home',    label: 'Beranda',   icon: Home      },
+  { id: 'search',  label: 'Cari Lagu', icon: Search    },
+  { id: 'explore', label: 'Jelajahi',  icon: Compass   },
+  { id: 'queue',   label: 'Antrian',   icon: ListMusic },
+  { id: 'lyrics',  label: 'Lirik',     icon: ScrollText},
+  { id: 'artist',  label: 'Artis',     icon: Mic2      },
 ]
 
-export default function Sidebar({ isOpen }) {
+export default function Sidebar({ isOpen, onClose }) {
   const { activePage, setPage, currentTrack, queue, isPlaying } = usePlayer()
+
+  function navigate(id) {
+    setPage(id)
+    onClose?.()   // auto-close sidebar di mobile
+  }
 
   return (
     <aside className={`
-      fixed left-0 top-0 bottom-[88px] z-50
+      fixed left-0 top-0 bottom-0 z-50
       w-[240px] flex flex-col
       bg-[#111] border-r border-white/[0.08]
-      transition-transform duration-200
-      ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-      lg:translate-x-0 lg:static lg:bottom-0
+      transition-transform duration-200 ease-out
+      ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
+      lg:translate-x-0 lg:static lg:shadow-none
     `}>
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-5 pt-5 pb-6">
@@ -32,13 +38,13 @@ export default function Sidebar({ isOpen }) {
       </div>
 
       {/* Nav */}
-      <nav className="flex flex-col gap-0.5 px-3 flex-1">
+      <nav className="flex flex-col gap-0.5 px-3 flex-1 overflow-y-auto">
         {NAV.map(({ id, label, icon: Icon }) => {
           const isActive = activePage === id
           return (
             <button
               key={id}
-              onClick={() => setPage(id)}
+              onClick={() => navigate(id)}
               className={`
                 flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl
                 text-[13.5px] font-medium text-left transition-all duration-150
@@ -72,13 +78,11 @@ export default function Sidebar({ isOpen }) {
             <p className="text-[11.5px] font-semibold truncate">{currentTrack.title}</p>
             <p className="text-[11px] text-white/40 truncate">{currentTrack.artist}</p>
           </div>
-          <div className={`flex items-end gap-[3px] h-4 flex-shrink-0 ${isPlaying ? '' : 'opacity-40'}`}>
+          {/* EQ bars */}
+          <div className={`flex items-end gap-[3px] h-4 flex-shrink-0 ${isPlaying ? '' : 'opacity-30'}`}>
             {[1,2,3,4].map(i => (
-              <span
-                key={i}
-                className={`block w-[3px] bg-brand rounded-full ${isPlaying ? `animate-bar-${i}` : ''}`}
-                style={{ height: [30, 70, 50, 90][i-1] + '%' }}
-              />
+              <span key={i} className={`block w-[3px] bg-brand rounded-full ${isPlaying ? `animate-bar-${i}` : ''}`}
+                style={{ height: [30,70,50,90][i-1]+'%' }} />
             ))}
           </div>
         </div>
