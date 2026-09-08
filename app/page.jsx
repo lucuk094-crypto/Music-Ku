@@ -1,27 +1,27 @@
 'use client'
-
 import { useState, useEffect, useCallback } from 'react'
 import {
-  TrendingUp, RefreshCw, Music2, Search as SearchIcon,
-  Clock, Heart, Zap,
+  TrendingUp, RefreshCw, Music2, Search as SearchIcon, Clock,
+  Heart, Zap, ChevronRight, Play,
 } from 'lucide-react'
-import Sidebar     from '@/components/Sidebar'
-import Topbar      from '@/components/Topbar'
-import SongCard    from '@/components/SongCard'
-import Player      from '@/components/Player'
-import BottomNav   from '@/components/BottomNav'
-import LyricsView  from '@/components/LyricsView'
-import QueuePanel  from '@/components/QueuePanel'
-import ArtistView  from '@/components/ArtistView'
+import Image from 'next/image'
+import Sidebar from '@/components/Sidebar'
+import Topbar from '@/components/Topbar'
+import SongCard from '@/components/SongCard'
+import Player from '@/components/Player'
+import BottomNav from '@/components/BottomNav'
+import LyricsView from '@/components/LyricsView'
+import QueuePanel from '@/components/QueuePanel'
+import ArtistView from '@/components/ArtistView'
 import ExploreView from '@/components/ExploreView'
 import { usePlayer } from '@/context/PlayerContext'
 
-// ── Helpers ────────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────
 function SkeletonGrid({ count = 6 }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="skeleton aspect-[4/5] rounded-2xl" />
+        <div key={i} className="skeleton rounded-2xl aspect-[3/4]" />
       ))}
     </div>
   )
@@ -29,64 +29,102 @@ function SkeletonGrid({ count = 6 }) {
 
 function SongGrid({ items }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
       {items.map(item => <SongCard key={item.videoId} item={item} />)}
     </div>
   )
 }
 
-// ── Toast ─────────────────────────────────────────────────────
+// ── Toast ─────────────────────────────────────────────────────────
 function Toast() {
   const { toast } = usePlayer()
   if (!toast) return null
   return (
-    <div className="fixed bottom-36 sm:bottom-28 left-1/2 z-[9999] pointer-events-none toast-enter" style={{ transform: 'translateX(-50%)' }}>
-      <div className="bg-[#1a1a1a] border border-white/[0.12] text-white text-[13px] font-medium px-5 py-2.5 rounded-full shadow-2xl backdrop-blur-xl whitespace-nowrap">
-        {toast}
-      </div>
+    <div className="toast-enter fixed bottom-28 sm:bottom-24 left-1/2 -translate-x-1/2 z-[999] bg-white/10 backdrop-blur-xl border border-white/20 text-white text-[13px] font-medium px-5 py-2.5 rounded-2xl shadow-xl whitespace-nowrap pointer-events-none">
+      {toast}
     </div>
   )
 }
 
-// ── Loading overlay ───────────────────────────────────────────
+// ── Loading overlay ────────────────────────────────────────────────
 function LoadingOverlay() {
   const { isLoading } = usePlayer()
   if (!isLoading) return null
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] flex flex-col items-center justify-center gap-4">
-      <div className="w-12 h-12 rounded-full border-2 border-white/10 border-t-brand animate-spin" />
-      <p className="text-sm text-white/60">Memuat audio…</p>
+    <div className="fixed inset-0 z-[998] bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-4 pointer-events-none">
+      <div className="flex gap-1 items-end h-10">
+        {[1,2,3,4,5].map(i => (
+          <div key={i} className={`w-1.5 bg-brand rounded-full animate-bar-${i}`} style={{ height: '100%' }} />
+        ))}
+      </div>
+      <p className="text-white/60 text-sm">Memuat audio…</p>
     </div>
   )
 }
 
-// ── Keyboard shortcut hint ────────────────────────────────────
+// ── Keyboard shortcut hint ─────────────────────────────────────────
 function ShortcutHint() {
   return (
-    <p className="text-[11px] text-white/20 mt-2">
-      Shortcut: <kbd className="px-1 py-0.5 bg-white/5 rounded text-[10px]">Space</kbd> play/pause ·
-      <kbd className="px-1 py-0.5 bg-white/5 rounded text-[10px] mx-1">←→</kbd> seek ·
-      <kbd className="px-1 py-0.5 bg-white/5 rounded text-[10px]">L</kbd> like ·
-      <kbd className="px-1 py-0.5 bg-white/5 rounded text-[10px] mx-1">M</kbd> mute
-    </p>
+    <div className="hidden lg:flex items-center gap-1.5 text-white/20 text-[11px] mt-4 select-none">
+      <span>Shortcut:</span>
+      <kbd className="bg-white/10 px-1.5 py-0.5 rounded-md text-[10px]">Space</kbd> play/pause·
+      <kbd className="bg-white/10 px-1.5 py-0.5 rounded-md text-[10px]">← →</kbd> seek·
+      <kbd className="bg-white/10 px-1.5 py-0.5 rounded-md text-[10px]">L</kbd> like·
+      <kbd className="bg-white/10 px-1.5 py-0.5 rounded-md text-[10px]">M</kbd> mute
+    </div>
   )
 }
 
-// ── Home page ─────────────────────────────────────────────────
+// ── Recently Played Item ──────────────────────────────────────────
+function RecentItem({ item, onPlay }) {
+  const [imgErr, setImgErr] = useState(false)
+  return (
+    <div
+      onClick={() => onPlay(item)}
+      className="flex items-center gap-2.5 px-3 py-2.5 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.07] rounded-xl cursor-pointer transition-all group active:scale-[0.97]"
+    >
+      <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-white/10 relative">
+        {item.thumbnail && !imgErr ? (
+          <Image
+            src={item.thumbnail}
+            alt={item.title}
+            fill
+            className="object-cover"
+            onError={() => setImgErr(true)}
+            sizes="40px"
+            unoptimized
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Music2 size={16} className="text-white/30" />
+          </div>
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[12.5px] font-medium text-white truncate">{item.title}</p>
+        <p className="text-[11px] text-white/40 truncate">{item.artist}</p>
+      </div>
+      <Play size={14} className="text-white/20 group-hover:text-brand transition-colors flex-shrink-0" />
+    </div>
+  )
+}
+
+// ── Home page ──────────────────────────────────────────────────────
 function HomePage({ onSearch }) {
-  const [trending,  setTrending]  = useState([])
-  const [genres,    setGenres]    = useState([])
-  const [loading,   setLoading]   = useState(true)
+  const [trending, setTrending] = useState([])
+  const [genres, setGenres] = useState([])
+  const [loading, setLoading] = useState(true)
   const { recentlyPlayed, liked, playSong, setPage } = usePlayer()
 
   async function loadTrending() {
     setLoading(true)
     try {
-      const res  = await fetch('/api/trending')
+      const res = await fetch('/api/trending')
       const data = await res.json()
       if (data.success) {
-        setTrending(data.trending || [])
-        setGenres(data.genres   || [])
+        // Support both data.trending and data.results for compatibility
+        setTrending(data.trending || data.results || [])
+        setGenres(data.genres || [])
       }
     } catch {
       setTrending([])
@@ -101,146 +139,159 @@ function HomePage({ onSearch }) {
   const likedSongs = recentlyPlayed.filter(r => liked.includes(r.videoId))
 
   return (
-    <div className="p-4 sm:p-6 pb-8 animate-fade-in space-y-10">
+    <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-4 space-y-8">
 
-      {/* Hero */}
-      <div className="flex items-start justify-between gap-6 pt-2">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/[0.05] border border-white/[0.08] rounded-full text-[12px] font-medium text-white/50 mb-4">
-            <Zap size={11} className="text-brand" />
-            Streaming Gratis
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-[1.1] mb-3">
-            Dengarkan Musik<br />
-            <span className="gradient-text">Tanpa Batas</span>
-          </h1>
-          <p className="text-[14px] text-white/45 max-w-sm leading-relaxed mb-4">
-            Jutaan lagu dengan lirik sinkron, cover art HD, dan info artis lengkap.
-          </p>
-          <ShortcutHint />
+      {/* ── Hero Banner ── */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand/80 via-purple-800/60 to-pink-900/50 p-6 sm:p-10 mt-2">
+        {/* Background decorative blobs */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-brand/20 rounded-full blur-3xl" />
+          <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-pink-500/15 rounded-full blur-3xl" />
         </div>
-        {/* Animated bars */}
-        <div className="hidden md:flex w-[160px] h-[160px] flex-shrink-0 rounded-3xl items-end justify-center p-5 bg-gradient-to-br from-brand/20 to-purple-500/10 border border-brand/20">
-          <div className="flex items-end gap-1.5 h-12">
-            {['animate-bar-1','animate-bar-2','animate-bar-3','animate-bar-4','animate-bar-5'].map((cls, i) => (
-              <span key={i} className={`block w-2 rounded bg-gradient-to-t from-brand to-brand-light ${cls}`}
-                style={{ height: [30,70,50,90,40][i]+'%' }} />
+
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div className="flex-1 min-w-0">
+            <p className="text-white/60 text-sm font-medium mb-1 flex items-center gap-2">
+              <Zap size={14} className="text-yellow-400" />
+              Streaming Gratis
+            </p>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight mb-3">
+              Dengarkan Musik<br />
+              <span className="gradient-text">Tanpa Batas</span>
+            </h1>
+            <p className="text-white/50 text-sm max-w-md">
+              Jutaan lagu dengan lirik sinkron, cover art HD, dan info artis lengkap.
+            </p>
+            <button
+              onClick={() => onSearch('')}
+              className="mt-4 flex items-center gap-2 bg-white text-black font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-white/90 transition-all active:scale-95"
+            >
+              <SearchIcon size={15} />
+              Cari Lagu
+            </button>
+          </div>
+
+          {/* EQ animation bars */}
+          <div className="flex gap-1.5 items-end h-16 flex-shrink-0">
+            {[1,2,3,4,5].map(i => (
+              <div
+                key={i}
+                className={`w-2 bg-white/70 rounded-full origin-bottom animate-bar-${i}`}
+                style={{ height: `${[60,85,45,90,70][i-1]}%` }}
+              />
             ))}
           </div>
         </div>
+
+        <ShortcutHint />
       </div>
 
-      {/* Recently Played */}
+      {/* ── Recently Played ── */}
       {recentlyPlayed.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Clock size={15} className="text-brand" />
-              <h2 className="text-[16px] font-bold">Terakhir Diputar</h2>
-            </div>
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <Clock size={16} className="text-brand" />
+              Terakhir Diputar
+            </h2>
+            <span className="text-xs text-white/30">{recentlyPlayed.length} lagu</span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {recentlyPlayed.slice(0, 6).map(item => (
-              <div
-                key={item.videoId}
-                onClick={() => playSong(item)}
-                className="flex items-center gap-2.5 px-3 py-2.5 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.07] rounded-xl cursor-pointer transition-all group active:scale-[0.97]"
-              >
-                {item.thumbnail
-                  ? <img src={item.thumbnail} alt="" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
-                  : <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                      <Music2 size={13} className="text-white/30" />
-                    </div>
-                }
-                <div className="min-w-0">
-                  <p className="text-[12px] font-semibold truncate">{item.title}</p>
-                  <p className="text-[11px] text-white/40 truncate">{item.artist}</p>
-                </div>
-              </div>
+              <RecentItem key={item.videoId} item={item} onPlay={playSong} />
             ))}
           </div>
         </section>
       )}
 
-      {/* Liked Songs */}
+      {/* ── Liked Songs ── */}
       {likedSongs.length > 0 && (
         <section>
-          <div className="flex items-center gap-2 mb-3">
-            <Heart size={15} className="text-pink-400" />
-            <h2 className="text-[16px] font-bold">Disukai</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <Heart size={16} className="text-pink-500" />
+              Disukai
+            </h2>
+            <span className="text-xs text-white/30">{likedSongs.length} lagu</span>
           </div>
           <SongGrid items={likedSongs.map(r => ({ ...r, channel: r.artist }))} />
         </section>
       )}
 
-      {/* Trending */}
+      {/* ── Trending ── */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <TrendingUp size={15} className="text-brand" />
-            <h2 className="text-[16px] font-bold">Trending Sekarang</h2>
-          </div>
-          <button onClick={loadTrending}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white/35 hover:text-white hover:bg-white/[0.05] text-[12.5px] font-medium transition-all">
-            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+          <h2 className="text-base font-bold text-white flex items-center gap-2">
+            <TrendingUp size={16} className="text-brand" />
+            Trending Sekarang
+          </h2>
+          <button
+            onClick={loadTrending}
+            className="flex items-center gap-1.5 text-[12px] text-white/40 hover:text-white/70 transition-colors"
+          >
+            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
             Refresh
           </button>
         </div>
         {loading ? <SkeletonGrid count={12} /> : <SongGrid items={trending} />}
       </section>
 
-      {/* Genre sections */}
-      {!loading && genres.map(({ genre, videos }) => (
-        videos.length > 0 && (
+      {/* ── Genre sections ── */}
+      {!loading && genres.map(({ genre, videos }) =>
+        videos && videos.length > 0 ? (
           <section key={genre}>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-[16px] font-bold">{genre}</h2>
+              <h2 className="text-base font-bold text-white">{genre}</h2>
               <button
                 onClick={() => setPage('explore')}
                 className="text-[12.5px] text-brand hover:text-brand-light flex items-center gap-1 transition-colors"
               >
-                Lihat semua
+                Lihat semua <ChevronRight size={13} />
               </button>
             </div>
             <SongGrid items={videos} />
           </section>
-        )
-      ))}
+        ) : null
+      )}
     </div>
   )
 }
 
-// ── Search page ───────────────────────────────────────────────
+// ── Search page ────────────────────────────────────────────────────
 function SearchPage({ results, isSearching }) {
   return (
-    <div className="p-4 sm:p-6 pb-8 animate-fade-in">
-      <h2 className="text-xl font-bold tracking-tight mb-5">Hasil Pencarian</h2>
-      {isSearching ? <SkeletonGrid count={8} />
-        : results.length > 0 ? <SongGrid items={results} />
-        : (
-          <div className="flex flex-col items-center justify-center h-48 gap-3 text-white/20">
-            <SearchIcon size={36} />
-            <p className="text-sm">Ketik di kotak pencarian untuk mulai…</p>
-          </div>
-        )
-      }
+    <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-4">
+      <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2 pt-2">
+        <SearchIcon size={16} className="text-brand" />
+        Hasil Pencarian
+      </h2>
+      {isSearching ? (
+        <SkeletonGrid count={12} />
+      ) : results.length > 0 ? (
+        <SongGrid items={results} />
+      ) : (
+        <div className="flex flex-col items-center justify-center h-48 gap-3 text-white/25">
+          <Music2 size={40} />
+          <p className="text-sm">Ketik di kotak pencarian untuk mulai…</p>
+        </div>
+      )}
     </div>
   )
 }
 
-// ── Main App ─────────────────────────────────────────────────
+// ── Main App ────────────────────────────────────────────────────────
 export default function App() {
   const { activePage, setPage } = usePlayer()
-  const [sidebarOpen,   setSidebarOpen]   = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchResults, setSearchResults] = useState([])
-  const [isSearching,   setIsSearching]   = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
 
   const handleSearch = useCallback(async (q) => {
     if (!q?.trim()) return
     setIsSearching(true)
     setPage('search')
     try {
-      const res  = await fetch(`/api/search?q=${encodeURIComponent(q)}`)
+      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`)
       const data = await res.json()
       setSearchResults(data.success ? data.results : [])
     } catch {
@@ -256,44 +307,41 @@ export default function App() {
   }, [setPage])
 
   return (
-    <div className="flex flex-col h-dvh overflow-hidden bg-[#0a0a0a]">
-      <div className="flex flex-1 overflow-hidden relative">
+    <div className="flex h-screen bg-[#0a0a0a] overflow-hidden">
 
-        {/* Sidebar overlay */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black/60 z-40 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
+      {/* Sidebar overlay for mobile */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-        <Sidebar
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      {/* Main */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <Topbar
+          onToggleSidebar={() => setSidebarOpen(p => !p)}
+          onSearchResults={handleSearchResults}
+          onSearching={setIsSearching}
         />
 
-        {/* Main */}
-        <div className="flex flex-col flex-1 overflow-hidden lg:ml-[240px]">
-          <Topbar
-            onToggleSidebar={() => setSidebarOpen(p => !p)}
-            onSearchResults={handleSearchResults}
-            onSearching={setIsSearching}
-          />
-          <main className="flex-1 overflow-y-auto">
-            {activePage === 'home'    && <HomePage    onSearch={handleSearch} />}
-            {activePage === 'search'  && <SearchPage  results={searchResults} isSearching={isSearching} />}
-            {activePage === 'explore' && <ExploreView />}
-            {activePage === 'queue'   && <QueuePanel  />}
-            {activePage === 'lyrics'  && <LyricsView  />}
-            {activePage === 'artist'  && <ArtistView  />}
-          </main>
-        </div>
-      </div>
+        <main className="flex-1 flex flex-col overflow-hidden pb-[var(--player-h)] sm:pb-0">
+          {activePage === 'home'    && <HomePage onSearch={handleSearch} />}
+          {activePage === 'search'  && <SearchPage results={searchResults} isSearching={isSearching} />}
+          {activePage === 'explore' && <ExploreView />}
+          {activePage === 'queue'   && <QueuePanel />}
+          {activePage === 'lyrics'  && <LyricsView />}
+          {activePage === 'artist'  && <ArtistView />}
+        </main>
 
-      {/* Player */}
-      <Player />
-      {/* Bottom nav (mobile only) */}
-      <BottomNav />
+        {/* Player */}
+        <Player />
+
+        {/* Bottom nav (mobile only) */}
+        <BottomNav />
+      </div>
 
       <Toast />
       <LoadingOverlay />

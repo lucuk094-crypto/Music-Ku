@@ -11,8 +11,11 @@
     --sidebar-w: 240px;
     --bottom-nav-h: 60px;
   }
+
   * { box-sizing: border-box; }
+
   html { scroll-behavior: smooth; }
+
   body {
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -20,34 +23,67 @@
     color: #ededed;
     overflow: hidden;
   }
+
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
     background: rgba(255,255,255,0.12);
     border-radius: 99px;
   }
+
+  /* ── @keyframes HARUS di luar @layer agar Tailwind arbitrary class bisa pakai ── */
+}
+
+/* ── EQ bar animation (dipakai oleh animate-bar-1 s.d. animate-bar-5 dari tailwind.config.js) ── */
+@keyframes bar {
+  0%, 100% { transform: scaleY(0.4); }
+  50%       { transform: scaleY(1.0); }
+}
+
+/* ── Skeleton pulse ── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* ── Toast slide up ── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ── Fade in ── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @layer components {
+
+  /* Glass morphism */
   .glass {
     background: rgba(255,255,255,0.04);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255,255,255,0.08);
   }
+
   .glass-md {
     background: rgba(255,255,255,0.07);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255,255,255,0.10);
   }
+
+  /* Gradient text */
   .gradient-text {
     background: linear-gradient(135deg, #7c3aed, #a855f7, #ec4899);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  /* Progress bar */
+
+  /* ── Progress bar ── */
   .progress-bar {
     position: relative;
     height: 4px;
@@ -57,33 +93,78 @@
     overflow: visible;
     touch-action: none;
   }
-  .progress-bar:hover .progress-thumb,
-  .progress-bar.dragging .progress-thumb { opacity: 1 !important; }
-  .progress-bar:hover .progress-fill,
-  .progress-bar.dragging .progress-fill  { background: #7c3aed !important; }
-  /* Lyric lines */
-  .lyric-line {
-    padding: 6px 12px;
-    border-radius: 10px;
-    font-size: 1rem;
-    font-weight: 500;
-    color: rgba(255,255,255,0.3);
-    cursor: pointer;
-    transition: all 0.25s ease;
-    border-left: 3px solid transparent;
-    line-height: 1.6;
+
+  .progress-bar:hover,
+  .progress-bar.dragging {
+    height: 5px;
   }
-  .lyric-line:hover  { color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.04); }
+
+  .progress-bar:hover .progress-fill,
+  .progress-bar.dragging .progress-fill {
+    background: #7c3aed !important;
+  }
+
+  .progress-bar:hover .progress-thumb,
+  .progress-bar.dragging .progress-thumb {
+    opacity: 1 !important;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: rgba(255,255,255,0.5);
+    border-radius: 99px;
+    pointer-events: none;
+    transition: background 0.15s ease;
+  }
+
+  .progress-thumb {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  /* ── Lyric lines ── */
+  .lyric-line {
+    padding: 7px 14px;
+    border-radius: 10px;
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.25);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+    line-height: 1.65;
+    user-select: none;
+  }
+
+  .lyric-line:hover {
+    color: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.04);
+  }
+
   .lyric-line.active {
     color: #fff;
     font-size: 1.2rem;
     font-weight: 700;
     border-left-color: #7c3aed;
-    background: rgba(124,58,237,0.1);
-    padding-left: 16px;
+    background: rgba(124,58,237,0.12);
+    padding-left: 18px;
+    text-shadow: 0 0 20px rgba(124,58,237,0.5);
   }
-  .lyric-line.past { color: rgba(255,255,255,0.2); }
-  /* Volume slider */
+
+  .lyric-line.past {
+    color: rgba(255,255,255,0.15);
+  }
+
+  /* ── Volume slider ── */
   .volume-slider {
     -webkit-appearance: none;
     appearance: none;
@@ -93,37 +174,45 @@
     outline: none;
     cursor: pointer;
     width: 80px;
+    transition: all 0.2s;
   }
+
+  .volume-slider:hover {
+    height: 5px;
+    background: rgba(255,255,255,0.25);
+  }
+
   .volume-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 12px; height: 12px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     background: #ededed;
     cursor: pointer;
   }
+
   .volume-slider::-moz-range-thumb {
-    width: 12px; height: 12px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     background: #ededed;
-    border: none; cursor: pointer;
+    border: none;
+    cursor: pointer;
   }
-  /* Skeleton */
+
+  /* ── Skeleton ── */
   .skeleton {
     background: rgba(255,255,255,0.06);
     border-radius: 12px;
     animation: skeleton-pulse 1.5s ease-in-out infinite;
   }
-  @keyframes skeleton-pulse {
-    0%,100% { opacity: 1; }
-    50%      { opacity: 0.4; }
+
+  /* ── Toast ── */
+  .toast-enter {
+    animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
   }
-  /* Toast */
-  .toast-enter { animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1); }
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateX(-50%) translateY(12px); }
-    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-  }
-  /* Genre card gradient */
+
+  /* ── Genre card ── */
   .genre-card {
     position: relative;
     overflow: hidden;
@@ -131,6 +220,13 @@
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
   }
-  .genre-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
-  .genre-card:active { transform: scale(0.97); }
+
+  .genre-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  }
+
+  .genre-card:active {
+    transform: scale(0.97);
+  }
 }
