@@ -10,6 +10,10 @@ const nextConfig = {
       { protocol: 'https', hostname: 'i.ytimg.com' },
     ],
   },
+  // Next.js 15: opt-out of dynamic IO warnings
+  experimental: {
+    dynamicIO: false,
+  },
 }
 
 module.exports = nextConfig
