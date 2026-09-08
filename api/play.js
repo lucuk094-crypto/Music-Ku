@@ -1,23 +1,24 @@
 'use strict'
 
-const { resolveAudio, getDeezerMeta, getLyrics } = require('./_helpers')
+const { resolveAudio, getDeezerMeta, getLyrics, sendJson, parseBody } = require('./_helpers')
 
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-
   if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-    return res.status(200).end()
+    res.statusCode = 200
+    return res.end()
   }
 
-  let body = req.body || {}
-  if (typeof body === 'string') {
-    try { body = JSON.parse(body) } catch { body = {} }
+  if (req.method !== 'POST') {
+    return sendJson(res, 405, { success: false, message: 'Method not allowed' })
   }
 
+  const body    = await parseBody(req)
   const { videoId, title, artist } = body
-  if (!videoId) return res.status(400).json({ success: false, message: 'videoId diperlukan' })
+
+  if (!videoId) return sendJson(res, 400, { success: false, message: 'videoId diperlukan' })
 
   try {
     const videoUrl    = `https://www.youtube.com/watch?v=${videoId}`
@@ -34,13 +35,13 @@ module.exports = async (req, res) => {
     const lyrics = lyricsData.status === 'fulfilled' ? lyricsData.value : null
 
     if (!audio) {
-      return res.status(500).json({
+      return sendJson(res, 500, {
         success: false,
-        message: audioData.reason?.message || 'Gagal mendapatkan audio'
+        message: audioData.reason?.message || 'Gagal mendapatkan audio',
       })
     }
 
-    return res.json({
+    return sendJson(res, 200, {
       success: true,
       result: {
         videoId,
@@ -52,9 +53,9 @@ module.exports = async (req, res) => {
         album:    deezer?.album  || null,
         cover:    deezer?.cover  || null,
         lyrics:   lyrics ? { plain: lyrics.plain, synced: lyrics.synced } : null,
-      }
+      },
     })
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message || 'Terjadi kesalahan' })
+    return sendJson(res, 500, { success: false, message: err.message || 'Terjadi kesalahan' })
   }
 }

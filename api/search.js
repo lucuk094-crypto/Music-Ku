@@ -1,30 +1,38 @@
 'use strict'
 
-const { getYoutube, getThumbnail, getDeezerMeta } = require('./_helpers')
+const { getYoutube, getThumbnail, getDeezerMeta, sendJson } = require('./_helpers')
 
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  const q = (req.query.q || '').trim()
-  if (!q) return res.status(400).json({ success: false, message: 'Query tidak boleh kosong' })
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+    res.statusCode = 200
+    return res.end()
+  }
+
+  const url  = new URL(req.url, `http://${req.headers.host}`)
+  const q    = (url.searchParams.get('q') || '').trim()
+
+  if (!q) return sendJson(res, 400, { success: false, message: 'Query tidak boleh kosong' })
 
   try {
-    const yt = await getYoutube()
-    const search = await yt.search(q, { type: 'video' })
-    const videos = (search.videos || []).slice(0, 20)
+    const yt         = await getYoutube()
+    const search     = await yt.search(q, { type: 'video' })
+    const videos     = (search.videos || []).slice(0, 20)
     const deezerHint = await getDeezerMeta(q)
 
     const results = videos.map(v => ({
       videoId:   v.id,
-      title:     v.title?.text    || 'Unknown',
-      channel:   v.author?.name   || v.channel?.name || 'Unknown',
-      duration:  v.duration?.text || null,
+      title:     v.title?.text         || 'Unknown',
+      channel:   v.author?.name        || v.channel?.name || 'Unknown',
+      duration:  v.duration?.text      || null,
       thumbnail: getThumbnail(v),
       url:       `https://www.youtube.com/watch?v=${v.id}`,
-      views:     v.view_count?.text || null,
+      views:     v.view_count?.text    || null,
     }))
 
-    return res.json({ success: true, results, deezerHint })
+    return sendJson(res, 200, { success: true, results, deezerHint })
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message || 'Gagal mencari' })
+    return sendJson(res, 500, { success: false, message: err.message || 'Gagal mencari' })
   }
 }

@@ -1,10 +1,10 @@
 'use strict'
 
-const axios   = require('axios')
-const crypto  = require('crypto')
+const axios = require('axios')
+const crypto = require('crypto')
 const { Innertube } = require('youtubei.js')
 
-// ── YouTube singleton ─────────────────────────────────────────
+// ── YouTube singleton ──────────────────────────────────────────
 let _yt = null
 async function getYoutube() {
   if (!_yt) _yt = await Innertube.create()
@@ -90,4 +90,32 @@ async function getLyrics(title, artist) {
   }
 }
 
-module.exports = { getYoutube, getThumbnail, resolveAudio, getDeezerMeta, getLyrics }
+// ── Vercel response helper ────────────────────────────────────
+function sendJson(res, statusCode, data) {
+  res.setHeader('Content-Type', 'application/json')
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.statusCode = statusCode
+  res.end(JSON.stringify(data))
+}
+
+// ── Body parser untuk POST ────────────────────────────────────
+function parseBody(req) {
+  return new Promise((resolve) => {
+    let raw = ''
+    req.on('data', chunk => { raw += chunk })
+    req.on('end', () => {
+      try { resolve(JSON.parse(raw)) } catch { resolve({}) }
+    })
+    req.on('error', () => resolve({}))
+  })
+}
+
+module.exports = {
+  getYoutube,
+  getThumbnail,
+  resolveAudio,
+  getDeezerMeta,
+  getLyrics,
+  sendJson,
+  parseBody,
+}
